@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage> {
         .map<MyRadio>((radio) => MyRadio.fromMap(radio))
         .toList();
     _selectedRadio = radios[0];
-    _selectedColor = Color(int.parse(_selectedRadio.color));
+    _selectedColor = Color(int.tryParse(_selectedRadio.color)!);
     setState(() {});
   }
 
@@ -139,8 +139,22 @@ class _HomePageState extends State<HomePage> {
                 [
                   100.heightBox,
                   "All Channels".text.xl.white.semiBold.make().px12(),
+                  20.heightBox,
+                  ListView(
+                    padding: Vx.m0,
+                    shrinkWrap: true,
+                    children: radios
+                        .map((e) => ListTile(
+                              leading: CircleAvatar(
+                                backgroundImage: NetworkImage(e.image),
+                              ),
+                              title: "${e.name} FM".text.white.make(),
+                              subtitle: e.tagline.text.white.make(),
+                            ))
+                        .toList(),
+                  ).expand()
                 ],
-                crossAlignment: CrossAxisAlignment.center,
+                crossAlignment: CrossAxisAlignment.start,
               )
             : const Offstage(),
       ),
@@ -149,30 +163,48 @@ class _HomePageState extends State<HomePage> {
           VxAnimatedBox()
               .size(context.screenWidth, context.screenHeight)
               .withGradient(LinearGradient(colors: [
-                AIUtil.primaryColor2,
-                _selectedColor ?? AIUtil.primaryColor1
+                AIUtil.primaryColor1,
+                _selectedColor ?? AIUtil.primaryColor2
               ], begin: Alignment.topLeft, end: Alignment.bottomRight))
               .make(),
-          AppBar(
-            title: "AI Radio"
-                .text
-                .xl2
-                .bold
-                .white
-                .make()
-                .shimmer(primaryColor: Vx.purple300, secondaryColor: Vx.white),
-            backgroundColor: Colors.transparent,
-            centerTitle: true,
-            elevation: 0.0,
-          ).h(80),
+          [
+            AppBar(
+              title: "AI Radio".text.xl2.bold.white.make().shimmer(
+                  primaryColor: Vx.purple300, secondaryColor: Vx.white),
+              backgroundColor: Colors.transparent,
+              centerTitle: true,
+              elevation: 0.0,
+            ).h(80),
+            20.heightBox,
+            "Start with - Hey Alan".text.italic.semiBold.white.make(),
+            20.heightBox,
+            VxSwiper.builder(
+                autoPlay: true,
+                autoPlayAnimationDuration: 3.seconds,
+                autoPlayCurve: Curves.linear,
+                enableInfiniteScroll: true,
+                height: 50.0,
+                viewportFraction: 0.35,
+                itemCount: sugg.length,
+                itemBuilder: (context, index) {
+                  final s = sugg[index];
+                  return Chip(
+                      label: s.text.make(), backgroundColor: Vx.randomColor);
+                }),
+          ].vStack(),
+          30.heightBox,
           radios.isNotEmpty
               ? VxSwiper.builder(
                   itemCount: radios.length,
-                  aspectRatio: 1.0,
+                  aspectRatio: context.mdWindowSize == MobileDeviceSize.small
+                      ? 1.0
+                      : context.mdWindowSize == MobileDeviceSize.medium
+                          ? 2.0
+                          : 1.0,
                   enlargeCenterPage: true,
                   onPageChanged: (index) {
                     final colorHex = radios[index].color;
-                    _selectedColor = Color(int.parse(colorHex));
+                    _selectedColor = Color(int.tryParse(colorHex)!);
                     _selectedRadio = radios[index];
                     setState(() {});
                   },
